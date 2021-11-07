@@ -48,12 +48,13 @@ double input[4] = { 0, 0.42, 0.9, 0.1 };
 feedforward(&net3layer, input);
 ```
 
-To train the network, provide an input as before and the expected output (of size equal to the last layer):
+To train the network, provide an input as before and the expected output (of size equal to the last layer).
+`feedforward` must be called before `train` for it to be meaningful.
 
 ```C
 double output[2] = { 0, 1 };
 
-feedforward(&net3layer, input, output);
+train(&net3layer, input, output);
 ```
 
 ### Cleaning up
@@ -64,4 +65,11 @@ Finally call `delNet`.
 ```C
 free(importedNet.layers);
 delNet(&importedNet);
+```
+
+If you want to save the network before cleaning up, call `saveNet`:
+
+```C
+saveNet(&net3layer, "networkSaveFile");
+delNet(&net3layer);
 ```

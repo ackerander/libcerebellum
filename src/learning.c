@@ -42,7 +42,7 @@ initNet(net_t *const restrict net, double (*ws)(size_t), double (*bs)(size_t))
 }
 
 void
-netFromFile(net_t *const restrict net, char *fn)
+netFromFile(net_t *const restrict net, const char *const restrict fn)
 {
 	FILE *file = fopen(fn, "rb");
 
@@ -53,6 +53,19 @@ netFromFile(net_t *const restrict net, char *fn)
 	fread(net->weights, sizeof(double), net->nws, file);
 	fread(net->biases, sizeof(double), net->nbs, file);
 	fclose(file);
+}
+
+void
+savenet(const net_t *const restrict net, const char *const restrict fn)
+{
+	FILE *out;
+
+	out = fopen(fn, "wb");
+	fwrite(&net->nlayers, sizeof(size_t), 1, out);
+	fwrite(net->layers, sizeof(size_t), net->nlayers, out);
+	fwrite(net->weights, sizeof(double), net->nws, out);
+	fwrite(net->biases, sizeof(double), net->nbs, out);
+	fclose(out);
 }
 
 void

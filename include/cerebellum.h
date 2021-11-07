@@ -32,7 +32,8 @@ void map(double (*const f)(double), double *const a, size_t len);
 void zip(double c, const double *const a, double *const b, size_t len);
 
 void initNet(net_t *const net, double (*ws)(size_t), double (*bs)(size_t));
-void netFromFile(net_t *const net, char *fn);
+void netFromFile(net_t *const net, const char *const fn);
+void saveNet(const net_t *const net, const char *const fn);
 void delNet(net_t *const net);
 double sigm(double x);
 void printNet(const net_t *const net);
