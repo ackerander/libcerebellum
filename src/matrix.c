@@ -1,134 +1,88 @@
 #include "cerebellum.h"
-#include <string.h>
+#include <math.h>
 
 inline void
-zeroVec(size_t len, vec_t *const restrict v)
+scale(double c, double *const restrict a, size_t len)
 {
-	v->arr = calloc(len, sizeof(double));
-	v->len = len;
-}
-
-inline void
-newVec(size_t len, vec_t *const restrict v)
-{
-	v->arr = malloc(len * sizeof(double));
-	v->len = len;
-}
-
-int
-cpyVec(const vec_t *const restrict v1, vec_t *const restrict v2)
-{
-	if (v2->arr)
-		return -1;
-	v2->arr = malloc(v1->len * sizeof(double));
-	memcpy(v2->arr, v1->arr, v1->len * sizeof(double));
-	v2->len = v1->len;
-	return 0;
+	for (size_t i = 0; i < len; ++i)
+		a[i] *= c;
 }
 
 inline void
-rmVec(vec_t *const restrict v)
+add(const double *const restrict a1, double *const restrict a2,
+	size_t len)
 {
-	free(v->arr);
-	v->arr = 0;
-	v->len = 0;
+	for (size_t i = 0; i < len; ++i)
+		a2[i] += a1[i];
 }
 
-void
-scaleVec(double c, const vec_t *const restrict v)
+inline void
+sub(const double *const restrict a1, const double *const restrict a2,
+	double *const restrict out, size_t len)
 {
-	for (size_t i = 0; i < v->len; ++i)
-		v->arr[i] *= c;
-}
-
-int
-vecAdd(const vec_t *const restrict v1, const vec_t *const restrict v2)
-{
-	if (v1->len != v2->len)
-		return -1;
-	for (size_t i = 0; i < v1->len; ++i)
-		v2->arr[i] += v1->arr[i];
-	return 0;
+	for (size_t i = 0; i < len; ++i)
+		out[i] = a1[i] - a2[i];
 }
 
 double
-dot(const vec_t *const restrict v1, const vec_t *const restrict v2)
+dot(const double *const restrict a1, const double *const restrict a2,
+	size_t len)
 {
 	double acc = 0.0f;
 
-	if (v1->len != v2->len)
-		return 0.0f;
-	for (size_t i = 0; i < v1->len; ++i)
-		acc += v1->arr[i] * v2->arr[i];
+	for (size_t i = 0; i < len; ++i)
+		acc += a1[i] * a2[i];
 	return acc;
 }
 
-inline void
-zeroMatrix(size_t rows, size_t cols, matrix_t *const restrict m)
+double
+dist(const double *const restrict a1, const double *const restrict a2,
+	size_t len)
 {
-	m->arr = calloc(rows * cols, sizeof(double));
-	m->rows = rows;
-	m->cols = cols;
-}
+	double acc = 0.0f;
 
-inline void
-newMatrix(size_t rows, size_t cols, matrix_t *const restrict m)
-{
-	m->arr = malloc(rows * cols * sizeof(double));
-	m->rows = rows;
-	m->cols = cols;
-}
-
-int
-cpyMatrix(const matrix_t *const restrict m1, matrix_t *const restrict m2)
-{
-	if (m2->arr)
-		return -1;
-	m2->arr = malloc(m1->rows * m1->cols * sizeof(double));
-	memcpy(m2->arr, m1->arr, m1->rows * m1->cols * sizeof(double));
-	m2->rows = m1->rows;
-	m2->cols = m2->cols;
-	return 0;
-}
-
-inline void
-rmMatrix(matrix_t *const restrict m)
-{
-	free(m->arr);
-	m->arr = 0;
-	m->rows = m->cols = 0;
+	for (size_t i = 0; i < len; ++i)
+		acc += (a1[i] - a2[i]) * (a1[i] - a2[i]);
+	return sqrt(acc);
 }
 
 void
-scaleMatrix(double c, const matrix_t *const restrict m)
-{
-	for (size_t i = 0; i < m->rows * m->cols; ++i)
-		m->arr[i] *= c;
-}
-
-int
-matrixAdd(const matrix_t *const restrict m1, const matrix_t *const restrict m2)
-{
-	if (m1->rows != m2->rows || m1->cols != m2->cols)
-		return -1;
-	for (size_t i = 0; i < m1->rows * m1->cols; ++i)
-		m2->arr[i] += m1->arr[i];
-	return 0;
-}
-
-int
-mult(const matrix_t *const restrict m1, const matrix_t *const restrict m2, matrix_t *const restrict mf)
+mult(const double *const restrict m1, const double *const restrict m2,
+	double *const restrict mf, size_t rows, size_t c, size_t cols)
 {
 	size_t row, col;
 
-	if (m1->cols != m2->rows || mf->rows != m1->rows || mf->cols != m2->cols)
-		return -1;
-	for (size_t i = 0; i < m1->rows * m2->cols; ++i) {
-		row = i / m2->cols;
-		col = i % m2->cols;
-		mf->arr[i] = m1->arr[row * m1->cols] * m2->arr[col];
-		for (size_t j = 1; j < m1->cols; ++j)
-			mf->arr[i] += m1->arr[row * m1->cols + j] * m2->arr[col + j * m2->cols];
+	for (size_t i = 0; i < rows * cols; ++i) {
+		row = i / cols;
+		col = i % cols;
+		mf[i] = m1[row * c] * m2[col];
+		for (size_t j = 1; j < c; ++j)
+			mf[i] += m1[row * c + j] * m2[col + j * cols];
 	}
-	return 0;
+}
+
+
+void
+multV(const double *const restrict m, const double *const restrict v,
+	double *const restrict vf, size_t rows, size_t cols)
+{
+	for (size_t i = 0; i < rows; ++i) {
+		vf[i] = m[i * cols] * v[0];
+		for (size_t j = 1; j < cols; ++j)
+			vf[i] += m[i * cols + j] * v[j];
+	}
+}
+
+inline void
+elemMult(const double *const a1, double *const a2, size_t len)
+{
+	for (size_t i = 0; i < len; ++i)
+		a2[i] *= a1[i];
+}
+
+inline void
+map(double (*const f)(double), double *const restrict a, size_t len)
+{
+	for (size_t i = 0; i < len; ++i)
+		a[i] = f(a[i]);
 }

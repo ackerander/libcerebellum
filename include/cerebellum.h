@@ -4,30 +4,39 @@
 #include <stdlib.h>
 
 typedef struct {
-	double *arr;
-	size_t len;
-} vec_t;
+	size_t *layers;
+	size_t nlayers;
+	double rate;
+	double *weights;
+	double *biases;
+	double *vals;
+	size_t nws;
+	size_t nbs;
+	double *b1;
+	double *b2;
+} net_t;
 
-typedef struct {
-	double *arr;
-	size_t rows;
-	size_t cols;
-} matrix_t;
+void scale(double c, double *const a, size_t len);
+void add(const double *const a1, double *const a2, size_t len);
+void sub(const double *const a1, const double *const a2, double *const out,
+	size_t len);
+double dot(const double *const a1, const double *const a2, size_t len);
+double dist(const double *const a1, const double *const a2, size_t len);
 
-void zeroVec(size_t len, vec_t *const v);
-void newVec(size_t len, vec_t *const v);
-int cpyVec(const vec_t *const v1, vec_t *const v2);
-void rmVec(vec_t *const v);
-void scaleVec(double c, const vec_t *const v);
-int vecAdd(const vec_t *const v1, const vec_t *const v2);
-double dot(const vec_t *const v1, const vec_t *const v2);
+void mult(const double *const restrict m1, const double *const restrict m2,
+	double *const restrict mf, size_t rows, size_t c, size_t cols);
+void multV(const double *const m, const double *const v,
+	double *const vf, size_t rows, size_t cols);
+void elemMult(const double *const a1, double *const a2, size_t len);
+void map(double (*const f)(double), double *const a, size_t len);
+void zip(double c, const double *const a, double *const b, size_t len);
 
-void zeroMatrix(size_t rows, size_t cols, matrix_t *const m);
-void newMatrix(size_t rows, size_t cols, matrix_t *const m);
-int cpyMatrix(const matrix_t *const m1, matrix_t *const m2);
-void rmMatrix(matrix_t *const m);
-void scaleMatrix(double c, const matrix_t *const m);
-int matrixAdd(const matrix_t *const m1, const matrix_t *const m2);
-int mult(const matrix_t *const m1, const matrix_t *const m2, matrix_t *const mf);
+void initNet(net_t *const net, double (*ws)(size_t), double (*bs)(size_t));
+void netFromFile(net_t *const net, char *fn);
+void delNet(net_t *const net);
+double sigm(double x);
+void printNet(const net_t *const net);
+double *feedforward(const net_t *const net, const double *const in);
+void train(net_t *const net, const double *const act, const double *const in);
 
 #endif

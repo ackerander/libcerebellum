@@ -1,24 +1,30 @@
 MAJORVERSION=0
-MINORVERSION=0
+MINORVERSION=1
 
 LIBDIR=/usr/lib
 INCDIR=/usr/include
-CFLAGS=-std=c99 -pedantic -Wall -Wextra
-LDFLAGS=-fpic
+OPTFLAGS=-march=native -mtune=native -O3
+CFLAGS=-std=c99 -pedantic -Wall -Wextra ${OPTFLAGS}
+LIBS=-lm
+LDFLAGS=-fpic ${LIBS}
 
 all: lib/libcerebellum.so.${MAJORVERSION}.${MINORVERSION}
 
-install: lib/libcerebellum.so.${MAJORVERSION}.${MINORVERSION} 
+install: lib/libcerebellum.so.${MAJORVERSION}.${MINORVERSION} uninstall
 	cp include/cerebellum.h ${INCDIR}
 	cp $< ${LIBDIR}
-	ln -sf ${LIBDIR}/libcerebellum.so.${MAJORVERSION}.${MINORVERSION} ${LIBDIR}/libcerebellum.so.${MAJORVERSION}
-	ln -sf ${LIBDIR}/libcerebellum.so.${MAJORVERSION} ${LIBDIR}/libcerebellum.so
+	ln -s ${LIBDIR}/libcerebellum.so.${MAJORVERSION}.${MINORVERSION} ${LIBDIR}/libcerebellum.so.${MAJORVERSION}
+	ln -s ${LIBDIR}/libcerebellum.so.${MAJORVERSION} ${LIBDIR}/libcerebellum.so
 
-lib/libcerebellum.so.${MAJORVERSION}.${MINORVERSION}: libcerebellum.o lib
-	cc ${LDFLAGS} -shared -o $@ $< -Wl,-soname,libcerebellum.so.${MAJORVERSION}
+lib/libcerebellum.so.${MAJORVERSION}.${MINORVERSION}: matrix.o learning.o
+	cc ${LDFLAGS} -shared -o $@ $^ -Wl,-soname,libcerebellum.so.${MAJORVERSION}
 
-lib:
-	mkdir lib
+matrix.o: src/matrix.c
+	cc ${CFLAGS} ${LDFLAGS} -I include -c -o $@ $<
 
-libcerebellum.o: src/matrix.c
-	cc ${CFLAGS} ${LDFLAGS} -I include -c -o $@ $^
+learning.o: src/learning.c
+	cc ${CFLAGS} ${LDFLAGS} -I include -c -o $@ $<
+
+uninstall:
+	rm -f ${INCDIR}/cerebellum.h
+	rm -f ${LIBDIR}/libcerebellum.*
