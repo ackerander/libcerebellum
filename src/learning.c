@@ -56,7 +56,7 @@ netFromFile(net_t *const restrict net, const char *const restrict fn)
 }
 
 void
-savenet(const net_t *const restrict net, const char *const restrict fn)
+saveNet(const net_t *const restrict net, const char *const restrict fn)
 {
 	FILE *out;
 
@@ -152,8 +152,6 @@ train(net_t *const restrict net, const double *const restrict in,
 {
 	size_t loff = net->nbs - net->layers[net->nlayers - 1], woff = net->nws;
 	double *tmp;
-/* Send through feedforward */
-	feedforward(net, in);
 /* Last layer error */
 	sub(act, net->vals + loff, net->b1, net->layers[net->nlayers - 1]);
 	for (size_t i = net->nlayers - 1; i > 1; --i) {
