@@ -86,3 +86,13 @@ map(double (*const f)(double), double *const restrict a, size_t len)
 	for (size_t i = 0; i < len; ++i)
 		a[i] = f(a[i]);
 }
+
+double
+dsquare(const double *const restrict a, const double *const restrict b, size_t len)
+{
+	double acc = 0;
+
+	for (size_t i = 0; i < len; ++i)
+		acc += (a[i] - b[i]) * (a[i] - b[i]);
+	return acc;
+}

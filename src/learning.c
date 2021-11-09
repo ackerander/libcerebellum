@@ -126,7 +126,6 @@ void addDotT(const double *const v1, const double *const v2, double *const restr
 	}
 }
 
-
 double *
 feedforward(const net_t *const restrict net, const double *const restrict in)
 {
@@ -167,8 +166,6 @@ train(net_t *const restrict net, const double *const restrict in,
 	/* Prepare next error */
 		multcTV(1/net->rate, net->weights + woff, net->vals + loff,
 			net->b2, net->layers[i], net->layers[i - 1]);
-//		multTV(net->weights + woff, net->b1, net->b2,
-//			net->layers[i], net->layers[i - 1]);
 		tmp = net->b1;
 		net->b1 = net->b2;
 		net->b2 = tmp;

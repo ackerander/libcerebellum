@@ -30,6 +30,7 @@ void multV(const double *const m, const double *const v,
 void elemMult(const double *const a1, double *const a2, size_t len);
 void map(double (*const f)(double), double *const a, size_t len);
 void zip(double c, const double *const a, double *const b, size_t len);
+double dsquare(const double *const a, const double *const b, size_t len);
 
 void initNet(net_t *const net, double (*ws)(size_t), double (*bs)(size_t));
 void netFromFile(net_t *const net, const char *const fn);
