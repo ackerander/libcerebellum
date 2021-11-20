@@ -73,3 +73,10 @@ If you want to save the network before cleaning up, call `saveNet`:
 saveNet(&net3layer, "networkSaveFile");
 delNet(&net3layer);
 ```
+
+## TODO
+
+* Fix dropout
+* Add Convolutional Nets
+* Add Recurrent Nets
+* More ...

@@ -39,6 +39,8 @@ void delNet(net_t *const net);
 double sigm(double x);
 void printNet(const net_t *const net);
 double *feedforward(const net_t *const net, const double *const in);
-void train(net_t *const net, const double *const act, const double *const in);
+double *dropforward(const net_t *const net, const double *const in,
+		const double *const ps);
+void train(net_t *const net, const double *const in, const double *const act);
 
 #endif

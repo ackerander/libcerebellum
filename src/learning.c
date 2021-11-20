@@ -129,18 +129,60 @@ void addDotT(const double *const v1, const double *const v2, double *const restr
 double *
 feedforward(const net_t *const restrict net, const double *const restrict in)
 {
-	size_t woff = 0, loff = 0, i;
+	size_t woff = 0, loff = 0; // Weight and layer offsets.
 
+/* Multiply weight & add biases: Wv + B */
 	multV(net->weights, in, net->vals, net->layers[1], net->layers[0]);
 	add(net->biases, net->vals, net->layers[1]);
+/* Apply activation function */
 	map(sigm, net->vals, net->layers[1]);
-	for (i = 2; i < net->nlayers; ++i) {
-		loff += net->layers[i - 1];
-		woff += net->layers[i - 1] * net->layers[i - 2];
-		multV(net->weights + woff, net->vals + loff - net->layers[i - 1],
-			net->vals + loff, net->layers[i], net->layers[i - 1]);
-		add(net->biases + loff, net->vals + loff, net->layers[i]);
-		map(sigm, net->vals + loff, net->layers[i]);
+	for (size_t i = 1; i < net->nlayers - 1; ++i) {
+		loff += net->layers[i];
+		woff += net->layers[i] * net->layers[i - 1];
+		multV(net->weights + woff, net->vals + loff - net->layers[i],
+			net->vals + loff, net->layers[i + 1], net->layers[i]);
+		add(net->biases + loff, net->vals + loff, net->layers[i + 1]);
+		map(sigm, net->vals + loff, net->layers[i + 1]);
+	}
+	return net->vals + loff;
+}
+
+void
+drop(double *const restrict layer, double p, size_t len)
+{
+	size_t drop = (size_t)((1 - p) * len), n = len;
+
+	for (size_t i = 0; i < len; ++i) {
+		if (rand() % n < drop) {
+			layer[i] = 0.0;
+			--drop;
+			--n;
+		}
+	}
+	scale(1/p, layer, len);
+}
+
+double *
+dropforward(const net_t *const restrict net, const double *const restrict in,
+		const double *const restrict ps)
+{
+	size_t woff = 0, loff = 0; // Weight and layer offsets.
+
+/* Multiply weight & add biases: Wv + B */
+	multV(net->weights, in, net->vals, net->layers[1], net->layers[0]);
+	add(net->biases, net->vals, net->layers[1]);
+/* Apply activation function */
+	map(sigm, net->vals, net->layers[1]);
+/* Apply dropout */
+	drop(net->vals, ps[0], net->layers[1]);
+	for (size_t i = 1; i < net->nlayers - 1; ++i) {
+		loff += net->layers[i];
+		woff += net->layers[i] * net->layers[i - 1];
+		multV(net->weights + woff, net->vals + loff - net->layers[i],
+			net->vals + loff, net->layers[i + 1], net->layers[i]);
+		add(net->biases + loff, net->vals + loff, net->layers[i + 1]);
+		map(sigm, net->vals + loff, net->layers[i + 1]);
+		drop(net->vals + loff, ps[i], net->layers[i + 1]);
 	}
 	return net->vals + loff;
 }
